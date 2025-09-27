@@ -61,5 +61,7 @@ set(PROJECT_PATH   "${CMAKE_SOURCE_DIR}")
 
 
 
-# for Conan to work
-include("${PROJECT_PATH}/build/build/conan_toolchain.cmake")
+# for Conan to work (needs to be executed 2 times)
+if(EXISTS "${PROJECT_PATH}/build/CMakeCache.txt")
+    include("${PROJECT_PATH}/build/build/conan_toolchain.cmake")
+endif()
