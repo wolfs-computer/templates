@@ -1,20 +1,20 @@
-# BUILD_DEFINITION
-# COMPILATION_SETTINGS
-# SYSTEM_PATHS
-# OTHER_TOOLCHAIN_FILES
+# _BUILD_DEFINITION_
+# _COMPILATION_SETTINGS_
+# _SYSTEM_PATHS_
+# _OTHER_TOOLCHAIN_FILES_
 
 
 
-##################################################=-> BUILD_DEFINITION <-=##################################################
+##################################################=-> _BUILD_DEFINITION_ <-=##################################################
 
 
 
-# Set the compiler (must be before the project function)
+# the name of the target operating system (must be before the project function)
 set(CMAKE_SYSTEM_NAME Generic)
 
 
 
-##################################################=-> COMPILATION_SETTINGS <-=##################################################
+##################################################=-> _COMPILATION_SETTINGS_ <-=##################################################
 
 
 
@@ -48,15 +48,16 @@ set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS} -g")
 
 
 
-##################################################=-> SYSTEM_PATHS <-=##################################################
+##################################################=-> _SYSTEM_PATHS_ <-=##################################################
 
 
 # path to main working directory
-set(PROJECT_PATH   "/home/Cyber_Wolf/Coding/1_projects/templates/c++/1_full")
+set(PROJECT_PATH   "${CMAKE_SOURCE_DIR}")
+# set(PROJECT_PATH   "/home/Cyber_Wolf/Coding/1_projects/templates/c++/1_full")
 
 
 
-##################################################=-> OTHER_TOOLCHAIN_FILES <-=##################################################
+##################################################=-> _OTHER_TOOLCHAIN_FILES_ <-=##################################################
 
 
 

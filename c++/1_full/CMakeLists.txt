@@ -1,3 +1,5 @@
+# CMakeLists.txt version: 2025.09.27
+
 # _CMAKE_
 # _SYSTEM_TOOLCHAIN_
 # _CMAKE_INCLUDES_
@@ -25,7 +27,6 @@ set(CMAKE_MAKE_PROGRAM="make -j 9")
 # set sytem specific settings (compiler, ...)
 
 
-# TODO: cmake relative path that works for any machine
 
 execute_process(COMMAND bash -c "echo -n $OSTYPE" OUTPUT_VARIABLE SYSTEM_TYPE)
 
@@ -131,10 +132,13 @@ endif()
 
 
 #####=-> include header files and add source files from lib/ <-=#####
-# TODO:
-# test it
-# make it prettier
-# TODO: normal variables
+# WARN: supports only libraries in form of
+# dir with source files and their headers
+# TODO: support any library:
+# all in one dir (supported)
+# multiply nested dirs (supported)
+# with CMakeLists.txt
+
 
 file(GLOB libraries "${PROJECT_LIB_PATH}/*")
 # flag to check if empty or not
@@ -142,26 +146,35 @@ set(is_empty 1)
 
 foreach(lib_dir ${libraries})
 
-    glob_files("${lib_dir}" "${PROJECT_FILE_TYPES}" lib_src)
-    list(APPEND PROJECT_LIB_SRC_FILES "${lib_src}")
+    if(IS_DIRECTORY ${lib_dir})
 
-    if(IS_DIRECTORY ${subdir})
+        # find source files for library
+        glob_files("${lib_dir}" "${PROJECT_FILE_TYPES}" lib_src)
+        list(APPEND PROJECT_LIB_SRC_FILES "${lib_src}")
+
+        # first message before libraries listing
         if (is_empty EQUAL 1)
             cmessage(INFO "Libraries in lib/:")
             set(is_empty 0)
         endif()
 
-        list(APPEND PROJECT_LIB_INC_PATH  "${subdir}")
+        # add header files from library in one place
+        list(APPEND PROJECT_LIB_INC_PATH  "${lib_dir}")
 
-        get_filename_component(lib_name "${subdir}" NAME)
-        message("\t\"${lib_name}\" -- ${subdir}")
+        # print library name (directory name) if not empty
+        list(LENGTH lib_src file_count)
+        if(NOT file_count EQUAL 0)
+            get_filename_component(lib_name "${lib_dir}" NAME)
+            message("\t\"${lib_name}\" -- ${lib_dir}")
+        endif()
     endif()
 
 endforeach()
 
+# include header files from all libraries from /lib
 include_directories(${PROJECT_LIB_INC_PATH})
 
-# if no directories
+# if no libraries
 if (is_empty EQUAL 1)
     cmessage(INFO "No libraries in lib/.")
 endif()
@@ -174,7 +187,6 @@ endif()
 
 #####=-> create main target <-=#####
 
-message("->> ${PROJECT_SRC_FILES}")
 add_executable(${PROJECT_NAME} ${PROJECT_SRC_FILES} ${PROJECT_LIB_SRC_FILES})
 
 
@@ -316,3 +328,9 @@ add_custom_target(
     COMMAND /bin/bash -c "${PROJECT_BUILD_PATH}/${PROJECT_NAME}"
     COMMAND /bin/bash -c "rm -f ${PROJECT_BUILD_PATH}/${PROJECT_NAME}"
 )
+
+
+# NOTE: Most used commands:
+# conan install .. --output-folder=build --build=missing
+# cmake .. -DCMAKE_BUILD_TYPE=Release
+# cmake --build . --target=run

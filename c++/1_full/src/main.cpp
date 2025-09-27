@@ -11,19 +11,14 @@
 // library includes
 #include <zlib.h>
 #include <spdlog/spdlog.h>
-#include "gfx.h"
+#include "tl.h"
+// #include "tl2.h"
 
 // project include files
 #include "ProjectConfig.h"
 #include "test_subdir/sub.h"
 #include "test_subdir/subdir2/testing_your_boundaries.h"
 
-
-
-// if it compiles it's working
-void check_gfx_lib() {
-    x11_data wd1;
-}
 
 
 void check_zlib() {
@@ -76,7 +71,8 @@ int main(void) {
     check_subdir_1();
     check_subdir_2();
 
-    check_gfx_lib();
+    tl::check();
+    // tl2::check();
 
     check_zlib();
 
