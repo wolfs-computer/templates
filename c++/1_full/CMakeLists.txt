@@ -22,10 +22,11 @@ set(CMAKE_MAKE_PROGRAM="make -j 9")
 
 
 ##################################################=-> _SYSTEM_TOOLCHAIN_ <-=##################################################
-
-
-
 # set sytem specific settings (compiler, ...)
+
+
+# TODO: cmake relative path that works for any machine
+
 execute_process(COMMAND bash -c "echo -n $OSTYPE" OUTPUT_VARIABLE SYSTEM_TYPE)
 
 if("${SYSTEM_TYPE}" STREQUAL "linux-android")
@@ -45,6 +46,7 @@ endif()
 # pretty messages
 # function cmessage()
 include("./cmake/cmessage.cmake")
+include("./cmake/glob_files.cmake")
 
 
 
@@ -61,69 +63,56 @@ project(
 
 
 #####=-> project paths <-=#####
+# PROJECT_*_PATH
 
-set(BUILD_DIR_PATH  "${PROJECT_PATH}/build")
-set(SRC_PATH        "${PROJECT_PATH}/src")
-set(LIB_DIR_PATH    "${PROJECT_PATH}/lib")
-set(INC_PATH        "${PROJECT_PATH}/include")
-set(DOCS_PATH       "${PROJECT_PATH}/docs")
-set(TESTS_PATH      "${PROJECT_PATH}/tests")
+set(PROJECT_BUILD_PATH    "${PROJECT_PATH}/build") # build directory
+set(PROJECT_SRC_PATH      "${PROJECT_PATH}/src") # source files
+set(PROJECT_LIB_PATH      "${PROJECT_PATH}/lib") # libraries (each one in separate directory)
+set(PROJECT_INC_PATH      "${PROJECT_PATH}/include") # include files
+set(PROJECT_DOCS_PATH     "${PROJECT_PATH}/docs") # documentation
+set(PROJECT_TESTS_PATH    "${PROJECT_PATH}/tests")
+
+set(PROJECT_FILE_TYPES    "*.c;*.cpp;*.cc;*.cxx;*.S;*.s;*.sx;*.asm") # file types for source files
+# headers are managed by cmake include_directories
+
+set(PROJECT_SRC_FILES) # source files from src/ directory
+set(PROJECT_LIB_SRC_FILES) # source files from libraries in /lib
+set(PROJECT_LIB_INC_PATH) # include files from libraries in /lib
 
 
 
 #####=-> find source files in src/ <-=#####
 
-file(GLOB SRC_FILES
-    "${SRC_PATH}/*.c"
-    "${SRC_PATH}/*.cpp"
-    "${SRC_PATH}/*.cc"
-    "${SRC_PATH}/*.cxx"
-    "${SRC_PATH}/*.S"
-    "${SRC_PATH}/*.s"
-    "${SRC_PATH}/*.sx"
-    "${SRC_PATH}/*.asm"
-)
+glob_files("${PROJECT_SRC_PATH}" "${PROJECT_FILE_TYPES}" PROJECT_SRC_FILES)
 
 
 
 #####=-> find source files in src/ subdirs <-=#####
-# TODO: test this and finish
-# TODO: normal variables
 
-# get all files recursively from SRC_PATH
-file(GLOB_RECURSE SUB_DIRS LIST_DIRECTORIES true "${SRC_PATH}/*")
+# get all files recursively from PROJECT_SRC_PATH
+file(GLOB_RECURSE subdirs LIST_DIRECTORIES true "${PROJECT_SRC_PATH}/*")
 # flag to check if empty or not
 set(is_empty 1)
 
-foreach(subdir ${SUB_DIRS})
+foreach(subdir ${subdirs})
+    # append source files from sub dir
+    glob_files("${subdir}" "${PROJECT_FILE_TYPES}" src_sub)
+    list(APPEND PROJECT_SRC_FILES "${src_sub}")
 
-    # append src files from sub dir
-    file(GLOB src_sub
-        "${SRC_PATH}/*.c"
-        "${SRC_PATH}/*.cpp"
-        "${SRC_PATH}/*.cc"
-        "${SRC_PATH}/*.cxx"
-        "${SRC_PATH}/*.S"
-        "${SRC_PATH}/*.s"
-        "${SRC_PATH}/*.sx"
-        "${SRC_PATH}/*.asm"
-    )
-    list(APPEND SRC_FILES "${src_sub}")
-
-    # pretty message about every sub dir
+    # print message about every subdirectory
     if(IS_DIRECTORY ${subdir})
+        # first message before subdirectory listing
         if (is_empty EQUAL 1)
             cmessage(INFO "Subdirectories in src:")
-            # message("${SUB_DIRS}")
             set(is_empty 0)
         endif()
-
+        # print subdirectory name and it's path
         get_filename_component(subdir_name "${subdir}" NAME)
         message("\t\"${subdir_name}\" -- ${subdir}")
     endif()
-
 endforeach()
 
+# if no subdirectories
 if (is_empty EQUAL 1)
     cmessage(INFO "No subdirectories in src/.")
 endif()
@@ -132,8 +121,8 @@ endif()
 
 #####=-> include header files for src/ from include/ <-=#####
 
-if(EXISTS "${INC_PATH}")
-    include_directories(${INC_PATH})
+if(EXISTS "${PROJECT_INC_PATH}")
+    include_directories(${PROJECT_INC_PATH})
     cmessage(OK "Found include directory.")
 else()
     cmessage(INFO "No include directory.")
@@ -141,31 +130,20 @@ endif()
 
 
 
-#####=-> find source files in lib/ <-=#####
+#####=-> include header files and add source files from lib/ <-=#####
 # TODO:
 # test it
 # make it prettier
 # TODO: normal variables
 
-set(LIB_SRC_FILES)
-set(LIB_INC_PATH)
-file(GLOB LIBRARIES "${LIB_DIR_PATH}/*")
+file(GLOB libraries "${PROJECT_LIB_PATH}/*")
 # flag to check if empty or not
 set(is_empty 1)
 
-foreach(subdir ${LIBRARIES})
+foreach(lib_dir ${libraries})
 
-    file(GLOB lib_src
-        "${LIB_PATH}/*.c"
-        "${LIB_PATH}/*.cpp"
-        "${LIB_PATH}/*.cc"
-        "${LIB_PATH}/*.cxx"
-        "${LIB_PATH}/*.S"
-        "${LIB_PATH}/*.s"
-        "${LIB_PATH}/*.sx"
-        "${LIB_PATH}/*.asm"
-    )
-    list(APPEND LIB_SRC_FILES "${lib_src}")
+    glob_files("${lib_dir}" "${PROJECT_FILE_TYPES}" lib_src)
+    list(APPEND PROJECT_LIB_SRC_FILES "${lib_src}")
 
     if(IS_DIRECTORY ${subdir})
         if (is_empty EQUAL 1)
@@ -173,7 +151,7 @@ foreach(subdir ${LIBRARIES})
             set(is_empty 0)
         endif()
 
-        list(APPEND LIB_INC_PATH  "${subdir}")
+        list(APPEND PROJECT_LIB_INC_PATH  "${subdir}")
 
         get_filename_component(lib_name "${subdir}" NAME)
         message("\t\"${lib_name}\" -- ${subdir}")
@@ -181,7 +159,7 @@ foreach(subdir ${LIBRARIES})
 
 endforeach()
 
-include_directories(${LIB_INC_PATH})
+include_directories(${PROJECT_LIB_INC_PATH})
 
 # if no directories
 if (is_empty EQUAL 1)
@@ -196,7 +174,8 @@ endif()
 
 #####=-> create main target <-=#####
 
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${LIB_SRC_FILES})
+message("->> ${PROJECT_SRC_FILES}")
+add_executable(${PROJECT_NAME} ${PROJECT_SRC_FILES} ${PROJECT_LIB_SRC_FILES})
 
 
 
@@ -260,11 +239,20 @@ get_filename_component(CXX_COMPILER_BASENAME "${CMAKE_CXX_COMPILER}" NAME)
 set(PROJECT_CXX_COMPILER "${CXX_COMPILER_BASENAME}")
 set(PROJECT_CXX_COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
 
+# system
+# NOTE: https://cmake.org/cmake/help/latest/command/cmake_host_system_information.html
+cmake_host_system_information(RESULT host_os_info QUERY OS_NAME OS_RELEASE OS_VERSION PROCESSOR_NAME)
+list(GET host_os_info 0 PROJECT_OS_NAME)
+list(GET host_os_info 1 PROJECT_OS_RELEASE)
+list(GET host_os_info 2 PROJECT_OS_VERSION)
+list(GET host_os_info 3 PROJECT_OS_PROCESSOR_NAME)
+
+
 
 
 #####=-> Create ProjectConfig.h in src/ using ProjectConfig.h.in from project root <-=#####
 
-configure_file(${PROJECT_PATH}/ProjectConfig.h.in ${INC_PATH}/ProjectConfig.h @ONLY)
+configure_file(${PROJECT_PATH}/ProjectConfig.h.in ${PROJECT_INC_PATH}/ProjectConfig.h @ONLY)
 target_include_directories(
     ${PROJECT_NAME} PUBLIC
     "${PROJECT_PATH}"
@@ -278,8 +266,8 @@ target_include_directories(
 
 
 # TODO: test it
-if(EXISTS "${DOCS_PATH}")
-    add_subdirectory(${DOCS_PATH})
+if(EXISTS "${PROJECT_DOCS_PATH}")
+    add_subdirectory(${PROJECT_DOCS_PATH})
     cmessage(OK "Docs can be generated!")
 else()
     cmessage(INFO "No docs!")
@@ -293,8 +281,8 @@ endif()
 
 
 # TODO: test it
-if(EXISTS "${TESTS_PATH}")
-    add_subdirectory(${TESTS_PATH})
+if(EXISTS "${PROJECT_TESTS_PATH}")
+    add_subdirectory(${PROJECT_TESTS_PATH})
     cmessage(OK "Tests can be used!")
 else()
     cmessage(INFO "No tests!")
@@ -315,8 +303,8 @@ endif()
 add_custom_target(
     run_valgrind
     DEPENDS ${PROJECT_NAME}
-    COMMAND /bin/bash -c "valgrind ${BUILD_DIR_PATH}/${PROJECT_NAME} --leak-check=full"
-    COMMAND /bin/bash -c "rm -f ${BUILD_DIR_PATH}/${PROJECT_NAME}"
+    COMMAND /bin/bash -c "valgrind ${PROJECT_BUILD_PATH}/${PROJECT_NAME} --leak-check=full"
+    COMMAND /bin/bash -c "rm -f ${PROJECT_BUILD_PATH}/${PROJECT_NAME}"
 )
 
 
@@ -325,6 +313,6 @@ add_custom_target(
 add_custom_target(
     run
     DEPENDS ${PROJECT_NAME}
-    COMMAND /bin/bash -c "${BUILD_DIR_PATH}/${PROJECT_NAME}"
-    COMMAND /bin/bash -c "rm -f ${BUILD_DIR_PATH}/${PROJECT_NAME}"
+    COMMAND /bin/bash -c "${PROJECT_BUILD_PATH}/${PROJECT_NAME}"
+    COMMAND /bin/bash -c "rm -f ${PROJECT_BUILD_PATH}/${PROJECT_NAME}"
 )

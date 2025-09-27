@@ -11,10 +11,19 @@
 // library includes
 #include <zlib.h>
 #include <spdlog/spdlog.h>
+#include "gfx.h"
 
 // project include files
 #include "ProjectConfig.h"
+#include "test_subdir/sub.h"
+#include "test_subdir/subdir2/testing_your_boundaries.h"
 
+
+
+// if it compiles it's working
+void check_gfx_lib() {
+    x11_data wd1;
+}
 
 
 void check_zlib() {
@@ -59,6 +68,15 @@ int main(void) {
     std::cout << "PROJECT_CXX_COMPILER: : " << PROJECT_CXX_COMPILER << std::endl;
     std::cout << "PROJECT_CXX_COMPILER_VERSION: : " << PROJECT_CXX_COMPILER_VERSION << std::endl;
 
+    std::cout << "PROJECT_OS_NAME: " << PROJECT_OS_NAME << std::endl;
+    std::cout << "PROJECT_OS_VERSION: " << PROJECT_OS_VERSION << std::endl;
+    std::cout << "PROJECT_OS_RELEASE: " << PROJECT_OS_RELEASE << std::endl;
+    std::cout << "PROJECT_OS_PROCESSOR_NAME: " << PROJECT_OS_PROCESSOR_NAME << std::endl;
+
+    check_subdir_1();
+    check_subdir_2();
+
+    check_gfx_lib();
 
     check_zlib();
 
