@@ -48,6 +48,16 @@ set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS} -g")
 
 
 
+#########################=-> ccache <-=########################
+
+# use ccache if found
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+endif()
+
+
+
 ##################################################=-> _SYSTEM_PATHS_ <-=##################################################
 
 

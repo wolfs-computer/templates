@@ -59,7 +59,7 @@ void check_spdlog() {
 
 int main(void) {
 
-    std::cout << "PROJECT_VERSION: " << VERSION << std::endl;
+    std::cout << "PROJECT_VERSION: " << PROJECT_VERSION << std::endl;
     std::cout << "PROJECT_CXX_COMPILER: : " << PROJECT_CXX_COMPILER << std::endl;
     std::cout << "PROJECT_CXX_COMPILER_VERSION: : " << PROJECT_CXX_COMPILER_VERSION << std::endl;
 

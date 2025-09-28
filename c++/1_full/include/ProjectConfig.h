@@ -3,7 +3,7 @@
 
 
 
-#define VERSION "0.0.1"
+#define PROJECT_VERSION "0.0.1"
 
 #define PROJECT_C_COMPILER "gcc"
 #define PROJECT_C_COMPILER_VERSION ""

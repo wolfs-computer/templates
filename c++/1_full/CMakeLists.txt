@@ -292,7 +292,6 @@ endif()
 
 
 
-# TODO: test it
 if(EXISTS "${PROJECT_TESTS_PATH}")
     add_subdirectory(${PROJECT_TESTS_PATH})
     cmessage(OK "Tests can be used!")
@@ -334,3 +333,7 @@ add_custom_target(
 # conan install .. --output-folder=build --build=missing
 # cmake .. -DCMAKE_BUILD_TYPE=Release # needs to be executed 2 times first time
 # cmake --build . --target=run
+
+# NOTE: if conan is not installed:
+# pip install conan
+# conan profile detect

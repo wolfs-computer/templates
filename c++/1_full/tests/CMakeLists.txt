@@ -9,6 +9,7 @@ FetchContent_Declare(
     # GIT_REPOSITORY https://github.com/google/googletest.git
     # GIT_TAG        v1.14.0
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP 1
 )
 FetchContent_MakeAvailable(googletest)
 
@@ -27,7 +28,7 @@ enable_testing()
 
 # find test source files
 
-file(GLOB TEST_FILES "${TESTS_PATH}/*.cpp")
+file(GLOB TEST_FILES "${PROJECT_TESTS_PATH}/*.cpp")
 
 # foreach(file ${TEST_FILES})
 #     message("\t${file}")
@@ -36,9 +37,9 @@ file(GLOB TEST_FILES "${TESTS_PATH}/*.cpp")
 
 add_executable(
     unit_tests
-    # ${TESTS_PATH}/test_test.cpp
+    # ${PROJECT_TESTS_PATH}/test_test.cpp
     ${TEST_FILES}
-    # ${TESTS_PATH}/other_tests.cpp
+    # ${PROJECT_TESTS_PATH}/other_tests.cpp
 )
 
 
@@ -46,14 +47,15 @@ add_executable(
 #####=-> Link against GTest and C code <-=#####
 
 # Add your source files
-add_library(SrcFiles ${SRC_FILES})
+add_library(SrcFiles ${PROJECT_SRC_FILES} ${PROJECT_LIB_SRC_FILES})
 
 
 target_link_libraries(
     unit_tests
     PRIVATE GTest::gtest_main
     SrcFiles
-    # PRIVATE GTest::gtest_main
+    ${CONAN_LIBS}
+    ${SYSTEM_LIBS}
 )
 # link_libraries(-fsanitize=leak,address,undefined)
 
